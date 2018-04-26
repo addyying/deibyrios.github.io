@@ -10,25 +10,28 @@ knitr::opts_chunk$set(warning = FALSE,
 
 ## Analysis of Buliding Permits
 
-One of the analysis we decided to perform to answer our main question, was to see if the 2nd Ave line project has affected the construction of new buildings (and remodeling of existing ones) in the project's area of influence (basically, phase 1 and 2, because phase 3 and 4 have no funding commitments yet).
-
-**Note**: Please see [Analysis of Data Quality](Analysis_of_Data_Quality.html), which includes a description of the data cleaning process.
+Does the new subway line Q affect the construction of buildings in the relevant Upper East Side neighborhoods? To understand how its impact may be, we first performed the analysis on the Building Permits data, looking into both new buildings and remodeling constructions. 
     
 ### Analysis of Building Permits for Phase 1
 
-To try to see if the 2nd Ave Line project has affected the construction of new buildings (and remodeling of existing ones) located near the Line, we added a column called "Distance" and used the block number to record the approximate distance (in blocks) from each building filing a building permit, to the 2nd Ave Line.
+On this data set, we focused on phase 1 – the Q line (short for Q line below) and phase 2 of Second Avenue Subway line (short for phase 2 below), since phase 3 and phase 4 have no committed funding yet. We also focused on the quantity of building permits filed because other categorical factors such as if a building is residential, commercial is not available. 
 
-For this purpose, we used the Block number column/variable and the official tax map for the City of New York, which graphically shows the the block number, street names and other information in the map. The link where we were able to access the online Digital Tax Map is: http://gis.nyc.gov/taxmap/map.html
+Intuitively, we anticipate different levels of impacts according to how far the block is away from the Q line. We added a new column “Distance”, and recorded the approximate distance in blocks from each building filing a building permit, to the Q line.
 
-In such map, we were able to manually place the pre-existing Lexington-Fourth Avenue Line (green line), the phase 1 of the 2nd Ave project (yellow line) and the stations entrances, to visually determine the block numbers that are near the phase 1 of the 2nd Ave line and their distance (in blocks) to the Line and to an station entrance:
+We then combined the “Distance” column and the Official Tax Map of New York City, which graphically shows the block number and street names in the map. The link to access the online Digital Tax Map is here: http://gis.nyc.gov/taxmap/map.html
+
+In this map, we are able to highlight the pre-existing Lexington Avenue Line (in green), the Q line (in yellow), and the stations entrances. This helps us to visually determine a few important measurements: 1) the blocks that are near the Q Line, 2) their distance to the Q Line, and 3) the distance from this block to an station entrance.
+
 
 ![](images/blocksphase1.png)
 <br><br>
 
-When determining the distances of the buildings to the 2nd Ave line, we differentiated between buildings to the left of the 2nd Ave Line and buildings to the right, because we suspected that the influence of the 2nd Ave Line may be greater for buildings to the right of the line than for buildings to the left, due to the proximity of the pre-existing Lexington-Fourth Avenue green Line, located just 2 blocks left from the 2nd Ave Line project.
+Would the impact vary if the block were on the east, or west side of the Q line? We suspected it would, because for the blocks on the east side of the Q line, there was no subway access at all, while it was fairly easy to access the pre-existing Lexington Avenue line from the blocks on the west side of Q. Therefore, we differentiated our blocks by "East" and "West" of the Q line. 
+
 <br>
 
-Before starting with the analysis, we needed to convert dates columns/variables from Factor to Date format and Block number variable from Factor to numeric:
+The first preparation we did for the analysis was to convert the Dates column from Factor to Date format and Distance column from Factor to numeric:
+
 
 ```{r}
 library(tidyverse)
@@ -41,13 +44,12 @@ permits_upper_east$Block = as.numeric(permits_upper_east$Block)
 
 ####Buildings on the left side of the 2nd Ave Line - Phase 1
 
-For blocks to the left of the 2nd Ave Line, as we can see in the map above, we can determine 3 different categories:
+For blocks on the west of the Q Line, we put them into three categories:
 
-1) block numbers that are within 1 block to the left;
-2) block numbers that are within 2-3 blocks to the left; and
-3) block numbers that are within 4-5 blocks to the left; from the 2nd Ave Line
+1) block id that are within 1 block on the west;
+2) block id that are within 2-3 blocks on the west; and
+3) block id that are within 4-5 blocks on the west; from the Q Line
 
-Using the block numbers for each of the 3 categories detailed above, we can add a column called "Distance" and use the block number to record the approximate distance (in blocks) from each building filing a building permit, to the left of 2nd Ave Line - phase 1:
 
 ```{r}
 data_phase1 <- permits_upper_east %>%
@@ -63,9 +65,11 @@ data_phase1 <- permits_upper_east %>%
                                  'other'))))
 ```
 
-Now we can visualize and compare the variation of new and remodeling building permits over time, among the different categories detailed above. 
 
-For this purpose, we first summarize by Filing.Date year and Distance, then we scale the data and create an index to visualize variations over time with time series lines for recent years:
+Now we can visualize and compare the variation of new and remodeling building permits over time, among the three different categories noted above.
+
+We first summarized by "Filing.Date", "Filing.year"" and "Distance"", then scaled the data and created an index to visualize variations over time with time series lines for years from 2001 to 2017:
+
 
 ```{r fig.height=7, fig.width=14}
 #First, summarize by Filing.Date year and Distance:
@@ -92,20 +96,24 @@ ggplot(data_phase1, aes(Filing.Year, index, color = Distance)) + geom_line(lwd =
 ```
 <br>
 
-**Conclusion:** From the graph above, it seems that, for buildings located on the left side of the 2nd Ave phase 1 Line, the number of building permits filed is related to the distance in blocks from the phase 1 of 2nd Ave line project; with buildings closer to the Line, showing a higher increase in filed building permits than buildings far from the Line.  
+**Conclusion:** From the graph above, it is clear that the number of building permits filed is related to the distance a block is from the Q line. For blocks located on the west side of the subway line, the closer they are to the Q line, the higher the increase is in filing building permits. 
+We can also easily spot the declining trend in filing building permits starting 2015 toward 2017 – when Q line was put into full operation. 
+This is unsurprising since filing for a permit is the first step of building construction or renovation, we would anticipate the filing peak taking place earlier than the completion of the subway, instead of around the same time or later its completion.
 
-Since the phase 1 opened on January 1st, 2017; we see the decrease in building permit filings as an expected result, as one would expect that new/remodeled residential and business buildings are planned, and consequently building permits filed, ahead and not nearly of after the completion of the project. We can later try to verify if this theory is adequate when we analyze the effect of phase 2 of the project, which, as mentioned in the project background summary, is just in preliminary works stage.       
+ 
 <br>
 
 ####Buildings on the right side of the 2nd Ave Line - Phase 1
 
-For blocks to the right of the 2nd Ave Line, as we can see in the map above, there are just 3 blocks between the 2nd Ave Line and the East River, except for a small row of few blocks located four blocks from the line (at the north end), so we established 3 different categories as follows:
+From the map above we can see, there are only 3 blocks between the Q Line and the East River, with an exception of a small group of blocks located four blocks from the line. So we made minor adjustments to categorizing them more properly: 
 
-1) block numbers that are within 1 block to the right;
-2) block numbers that are within 2 blocks to the right; and
-3) block numbers that are within 3-4 blocks to the right; from the 2nd Ave Line
+1) block ids that are within 1 block on the east side;
+2) block ids that are within 2 blocks on the east side; and
+3) block ids that are within 3-4 blocks on the east side from the Q line.
 
-Using the block numbers for each of those 3 categories, we followed the same procedure performed to analyze buildings to the left, going back to the original data to add a column called "Distance" and use the block number to record the approximate distance (in blocks) from each building filing a building permit, to the right of 2nd Ave Line - phase 1:
+
+Using the block ids for each of those 3 categories, we followed the same procedure performed to analyze building permits on the west side.
+
 
 ```{r}
 data_phase1 <- permits_upper_east %>%
@@ -148,23 +156,26 @@ ggplot(data_phase1, aes(Filing.Year, index, color = Distance)) + geom_line(lwd =
 ```
 <br>
 
-**Preliminary Conclusions:** Initially, we had plotted just recent years (similar to what we did for buildings on the left side of the line), but we noted that the category '3-4 blocks right from 2nd Ave line' had a higher increase in variation than other lines which was not an expected result.
+**Preliminary Conclusions:** 
 
-However, after plotting from the initial year when data is available (1990) we could see that historically, that block of buildings have always had a higher increase in the number of building permits, which made us think it is due to the fact that this last category is right on the edge of the East River, which would attract a higher number of projects than the other categories, due to the water views. 
+Initially, we had plotted just recent years (similar to what we did for buildings on the west side of the Q line), but we noticed that the category “3-4 blocks east from Q line” had a higher increase in variation than other categories, which was unexpected.
 
-To try to isolate that phenomenon, we could just remove the category '3-4 blocks right from line' which would be the category affecting the results, but then we would need some more visual evidence to see if the project seems to affect the filing of building permits or not. 
+However, after plotting from 1990 – the first year that data was available, we noticed that historically, this group of blocks has always had a higher increase in the number of building permits. One possible explanation was that this group of blocks sits right next to the East River, where the water views and riverside parks make it an ideal residential destination that would attract a higher number of projects.  
 
-For that purpose, we further differentiated the category '1 block right from 2nd Ave Line' into the following 2 categories:
+To isolate that phenomenon, we could simply remove the category “3-4 blocks east from line”, but then we would need some more visual evidence to see how the Q Line affects the filing of building permits.  ???  need a fresh pair of eyes 
 
-1) buildings located within a 1 block radius from a 2nd Ave Line station entrance (right side)
-2) all other buildings, within 1 block right from 2nd Ave Line
+For that purpose, we further divided the category “1 block east from Q Line” into the following 2 categories:
 
-Similarly, we further differentiated the category '2 blocks right from 2nd Ave Line' into the following 2 categories:
+1) buildings located within a one-block radius from a Q Line station entrance 
+2) all other buildings, within 1 block east from the Q Line
 
-3) buildings located within 2 block radius from a 2nd Ave Line station entrance (right side)
-4) all other buildings, within 2 blocks right from 2nd Ave Line
+Similarly, we further differentiated the category “2 blocks east from Q Line” into the following 2 categories:
 
-Using the block numbers for each of the 4 categories detailed above, we followed the same procedure described previously, adding a column called "Distance" to record the approximate distance (in blocks) to the right of the 2nd Ave Line project - phase 1 and its stations entrances:
+3) buildings located within 2 block radius from a Q Line station entrance
+4) all other buildings, within 2 blocks east from Q Line
+
+
+Using the block ids for each of the 4 categories detailed above, we followed the same procedure described previously:
 
 ```{r}
 data_phase1 <- permits_upper_east %>%
@@ -179,7 +190,7 @@ data_phase1 <- permits_upper_east %>%
                                  'other')))))
 ```
 
-Now we can visualize and compare the variation of building permits over time, among the different categories detailed above, by following the same procedure described previously:
+
 
 ```{r fig.height=10, fig.width=17}
 #First, summarize by Filing.Date year and Distance:
@@ -206,22 +217,23 @@ ggplot(data_phase1, aes(Filing.Year, index, color = Distance)) + geom_line(lwd =
 ```
 <br>
 
-**Conclusion:** For buildings located on the right side of the 2nd Ave phase 1 Line, it seems that the variation in building permits filed is indeed related to the 2nd Ave Line project, with buildings closer to a phase 1 station, showing a higher increase in filed building permits than buildings far from a phase 1 station.
+**Conclusion:**  From the graph, we can see that the variation in the quantity of filed building permits is indeed related to the Q Line. The closer the buildings are to a Q Line station, the higher the increase is in filing building permits. 
+
 <br><br>
 
 #####**Analysis of Building Permits for Phase 2**
 
-For phase 2 of the project, it is not as straightforward just to select blocks to the left and block to the right because, as we can see in the figure presented in the background, the phase 2 is not just a straight line like phase 1, but it turns left (west) near 125th street, to connect with the existing Lexington-Fourth Avenue green Line.
+We could not simply apply the same methodology to analyze the phase 2 of the Second Avenue Subway project, because phase 2 is not a straight line like phase 1 line Q. It turns west near 125th street, to connect with the existing Lexington Avenue green Line. 
 
-As a solution, we decided not to determine the distance left or right from the line but to compute the distance (in blocks) from each station, using the coordinates of the planned stations and the coordinates of the buildings filing a building permit.
+To represent our data more accurately, we abandoned the previous approach that counting blocks as the measurement of distance. In stead, we adopted the coordinates of the planned stations and the coordinates of the buildings filing a building permit for better precision. 
 
-With this methodology, we established the following 3 different categories:
+We established our categories as follows: 
 
-1) buildings located within 1 block radius from a 2nd Ave phase 2 station;
-2) buildings located within 1 and 2 blocks from a 2nd Ave phase 2 station;
-3  buildings located within 2 and 3 blocks from a 2nd Ave phase 2 station.
+1) buildings located within 1 block radius from a phase 2 station;
+2) buildings located within 1 and 2 blocks from a phase 2 station;
+3) buildings located within 2 and 3 blocks from a phase 2 station.
 
-Using the coordinates of the buildings (which are variables available in the dataset) and the coordinates of the planned stations, we were able to compute the distance in blocks as follows:
+Using the building coordinates and the (planned) station coordinates, we were able to compute the distance in blocks as follows:
 
 ```{r}
 #coordinates of planned phase 2 106 station: 40.790526 / -73.942509
@@ -272,7 +284,7 @@ data_phase2$Distance <- factor(data_phase2$Distance,levels=c('Within 1 block fro
                                                      'other'))
 ```
 
-Now we can visualize and compare the variation of building permits during recent years, among the different categories detailed above, by following the same procedure described previously:
+Now we can visualize and compare the variation of building permits from 1990 to 2017, among the categories detailed above, by following the same procedure described previously:
 
 ```{r fig.height=10, fig.width=17}
 #First, summarize by Filing.Date year and Distance:
@@ -299,15 +311,23 @@ ggplot(data_phase2, aes(Filing.Year, index, color = Distance)) + geom_line(lwd =
 ```
 <br>
 
-**Conclusions:** For buildings located in the vicinity of the of the planned 2nd Ave phase 2 Line, it seems that the variation in building permits filed is indeed related to the 2nd Ave Line phase 2 project, with buildings closer to a planned phase 2 station, consistently showing a higher increase in filed building permits than buildings further away from a planned phase 2 station.
+**Conclusions:** As we expected as well as consistent with our findings from Q Line, the variation in the quantity of building permits filed is indeed related to the phase 2 subway line.  There is a consistent higher increase in the quantity of building permits filed in the blocks closer to a planned station, than buildings further away from a planned station.
 
-Contrary to our findings in phase 1 which opened on January 1st, 2017, where we found a decrease in  building permit filings during 2017 (which we considered reasonable as one would expect that new/remodeled residential and business buildings are planned ahead and not after the finalization of the project); here we can see that the building permit filings actually increased during 2017, when preliminary works for this phase started, and they have higher increases starting in 2011-2013, after some recovery from 2008 financial crisis, when news were coming out about the so long waited 2nd Ave Line finally becoming a reality and tunneling machines successfully making its way through ground, building the tunnels for phase 1.
+Contrary to our findings in phase 1 – Q Line, which opened on January 1st, 2017, where we found a decrease in building permit filings during 2017 (which we considered reasonable as one would expect that new/remodeled residential and business buildings are planned ahead and not after the finalization of the project); 
+
+Here we can see that the building permit filings actually increased after 2015 through 2017, when preliminary works for this phase started. Additionally, they have higher increases starting in 2011-2013, after some recovery from 2008 financial crisis, when news were coming out about the so long waited 2nd Ave Line finally becoming a reality and tunneling machines successfully making its way through ground, building the tunnels for phase 1. ?? Is this necessary ?
+
+I looked up the phaset2 timeline: 
+MTA completed the environmental review process with a Record of Decision in 2004. MTA expects to complete an environmental reevaluation in early 2018, have the project enter the Engineering phase of the CIG program in late 2018,
+
+I actually think this is consistent with what we found from Q – phase 1, that the # of building permits increase before the completion of the subway. Thoughts ??
 <br>  
     
     
-**Additional work performed:** After our analysis, we tried several plots to try to find out if there was any different relationship by plotting buildings owned by individuals Vs buildings owned by corporations, resiendtial buildings vs non-resitential buildings, but we didn't find any different results.
+**Additional work performed:**  After our analysis, we tried several plots in effort to find out if there were any different relationships by plotting buildings owned by individuals vs buildings owned by corporations, residential buildings vs non-residential buildings, but we didn't find any siginificant results.
 
-As final step, we decided to present the results from our EDA in a map, so we summarized and saved our data, using the variables LATITUDE and LONGITUDE, instead of using the Distance variable that we created for EDA purposes:
+To maximize our findings, we presented our EDA results into a map, using the variables LATITUDE and LONGITUDE from our processed data:
+
 
 ```{r}
 #First, save frequency (one row per observation):
